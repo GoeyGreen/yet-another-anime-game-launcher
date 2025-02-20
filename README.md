@@ -1,6 +1,5 @@
 # Yet another anime game launcher (Yaagl)
 
-## Current Supported Game Version:
 
 ### GI: 5.3.0+ OS/CN \*\*
 
