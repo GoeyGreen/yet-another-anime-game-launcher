@@ -1,4 +1,4 @@
-import { Server } from "@constants";
+import type { Server } from "@constants";
 
 // import d from "../../external/hk4e/dW5pdHlwbGF5ZXJfcGF0Y2hfb3MudmNkaWZmCg==.vcdiff?url";
 

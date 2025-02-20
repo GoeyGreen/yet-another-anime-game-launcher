@@ -2,7 +2,7 @@ import { checkCrossover } from "./crossover";
 import { checkWhisky } from "./whisky";
 import { getKey } from "@utils";
 import { DEFAULT_WINE_DISTRO_TAG } from "../clients";
-import { Github } from "../github";
+import type { Github } from "../github";
 
 export interface WineDistributionAttributes {
   renderBackend: "dxmt" | "dxvk" | "gptk";
@@ -98,7 +98,7 @@ export async function getWineDistributions(): Promise<WineDistribution[]> {
           renderBackend: "gptk",
           crossover: true,
         },
-      }
+      },
     );
   }
 
@@ -121,7 +121,7 @@ export async function getWineDistributions(): Promise<WineDistribution[]> {
           renderBackend: "gptk",
           whisky: true,
         },
-      }
+      },
     );
   }
 
@@ -141,28 +141,28 @@ export type WineStatus =
 export async function checkWine(github: Github): Promise<WineStatus> {
   const wine_versions = await getWineDistributions();
   const defaultDistro = wine_versions.find(
-    x => x.id == DEFAULT_WINE_DISTRO_TAG
+    x => x.id === DEFAULT_WINE_DISTRO_TAG,
   );
   if (!defaultDistro) {
     throw new Error(
-      "can not find default wine version: " + DEFAULT_WINE_DISTRO_TAG
+      `can not find default wine version: ${DEFAULT_WINE_DISTRO_TAG}`,
     );
   }
   try {
     const wineState = await getKey("wine_state");
-    if (wineState == "update") {
+    if (wineState === "update") {
       const update_wine_tag = await getKey("wine_update_tag");
       return {
         wineReady: false,
         wineDistribution:
-          wine_versions.find(x => x.id == update_wine_tag) ?? defaultDistro,
+          wine_versions.find(x => x.id === update_wine_tag) ?? defaultDistro,
       } as const;
     }
     const currrent_wine_tag = await getKey("wine_tag");
-    const wineDistribution = wine_versions.find(x => x.id == currrent_wine_tag);
+    const wineDistribution = wine_versions.find(x => x.id === currrent_wine_tag);
     if (wineDistribution) {
       return { wineReady: true, wineDistribution } as const;
-    } else {
+    }
       return {
         wineReady: true,
         wineDistribution: {
@@ -172,7 +172,6 @@ export async function checkWine(github: Github): Promise<WineStatus> {
           attributes: {}, // FIXME: old version compatibility (or force update)
         },
       };
-    }
   } catch (e) {
     return {
       wineReady: false,

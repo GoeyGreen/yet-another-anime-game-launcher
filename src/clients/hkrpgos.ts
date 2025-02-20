@@ -1,4 +1,4 @@
-import { Server } from "@constants";
+import type { Server } from "@constants";
 
 import s from "../assets/SilverWolf.cr.png";
 

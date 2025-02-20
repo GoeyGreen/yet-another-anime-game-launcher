@@ -13,7 +13,7 @@ import {
   writeFile,
 } from "@utils";
 import { dirname, join } from "path-browserify";
-import { WineDistribution } from "./distro";
+import type { WineDistribution } from "./distro";
 import { getCrossoverBinary } from "./crossover";
 import { getWhiskyBinary } from "./whisky";
 
@@ -24,8 +24,8 @@ export async function createWine(options: {
   const loaderBin = options.distro.attributes.crossover
     ? await getCrossoverBinary()
     : options.distro.attributes.whisky
-    ? await getWhiskyBinary()
-    : await getCorrectWineBinary();
+      ? await getWhiskyBinary()
+      : await getCorrectWineBinary();
 
   async function cmd(command: string, args: string[]) {
     return await exec("cmd", [command, ...args]);
@@ -35,10 +35,10 @@ export async function createWine(options: {
     program: string,
     args: string[],
     env?: { [key: string]: string },
-    log_file: string | undefined = undefined
+    log_file: string | undefined = undefined,
   ) {
     return await unixExec(
-      program == "copy"
+      program === "copy"
         ? [loaderBin, "cmd", "/c", program, ...args]
         : [loaderBin, program, ...args],
       {
@@ -46,7 +46,7 @@ export async function createWine(options: {
         ...(env ?? {}),
       },
       false,
-      log_file
+      log_file,
     );
   }
 
@@ -54,10 +54,10 @@ export async function createWine(options: {
     program: string,
     args: string[],
     env?: { [key: string]: string },
-    log_file: string | undefined = undefined
+    log_file: string | undefined = undefined,
   ) {
     return await unixExec2(
-      program == "copy"
+      program === "copy"
         ? [loaderBin, "cmd", "/c", program, ...args]
         : [loaderBin, program, ...args],
       {
@@ -65,7 +65,7 @@ export async function createWine(options: {
         ...(env ?? {}),
       },
       false,
-      log_file
+      log_file,
     );
   }
 
@@ -76,7 +76,7 @@ export async function createWine(options: {
   }
 
   function toWinePath(absPath: string) {
-    return "Z:" + `${absPath}`.replaceAll("/", "\\");
+    return `Z:${`${absPath}`.replaceAll("/", "\\")}`;
   }
 
   function getEnvironmentVariables() {
@@ -89,7 +89,7 @@ export async function createWine(options: {
   async function openCmdWindow({ gameDir }: { gameDir: string }) {
     return await unixExec2(
       [
-        `osascript`,
+        "osascript",
         "-e",
         [
           "tell",
@@ -110,7 +110,7 @@ export async function createWine(options: {
       ],
       {},
       false,
-      "/dev/null"
+      "/dev/null",
     );
   }
 
@@ -137,7 +137,7 @@ reg add "HKEY_CURRENT_USER\\Software\\Wine\\Mac Driver" /v LeftCommandIsCtrl /t 
       "cmd",
       ["/c", `${toWinePath(resolve("./winedrv_config.bat"))}`],
       {},
-      "/dev/null"
+      "/dev/null",
     );
     await waitUntilServerOff();
   }
@@ -168,6 +168,5 @@ export async function getCorrectWineBinary() {
   }
 }
 
-export type Wine = ReturnType<typeof createWine> extends Promise<infer T>
-  ? T
-  : never;
+export type Wine =
+  ReturnType<typeof createWine> extends Promise<infer T> ? T : never;
