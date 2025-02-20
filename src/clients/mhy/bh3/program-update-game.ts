@@ -34,7 +34,7 @@ const sha1sum = async (message: string) => {
 async function* downloadAndPatch(
   updateFileZip: string,
   gameDir: string,
-  aria2: Aria2
+  aria2: Aria2,
 ): CommonUpdateProgram {
   const downloadTmp = join(gameDir, ".ariatmp");
   await mkdirp(downloadTmp);
@@ -42,7 +42,7 @@ async function* downloadAndPatch(
 
   try {
     await getKey(
-      `predownloaded_${(await sha1sum(basename(updateFileZip))).slice(0, 32)}`
+      `predownloaded_${(await sha1sum(basename(updateFileZip))).slice(0, 32)}`,
     );
     await stats(updateFileTmp);
   } catch {
@@ -68,14 +68,14 @@ async function* downloadAndPatch(
       yield [
         "setProgress",
         Number(
-          (progress.completedLength * BigInt(10000)) / progress.totalLength
+          (progress.completedLength * BigInt(10000)) / progress.totalLength,
         ) / 100,
       ];
     }
   } finally {
     await setKey(
       `predownloaded_${(await sha1sum(basename(updateFileZip))).slice(0, 32)}`,
-      null
+      null,
     );
   }
 
@@ -112,7 +112,7 @@ async function* downloadAndPatch(
     await hpatchz(
       join(gameDir, file),
       join(gameDir, file + ".hdiff"),
-      join(gameDir, file + ".patched")
+      join(gameDir, file + ".patched"),
     );
     await forceMove(join(gameDir, file + ".patched"), join(gameDir, file));
     await removeFile(join(gameDir, file + ".hdiff"));
@@ -141,51 +141,6 @@ export async function* updateGameProgram({
   updateVoicePackZips: string[];
 }): CommonUpdateProgram {
   yield ["setStateText", "UPDATING"];
-  // 3.6.0
-  if (gte(updatedGameVersion, "3.6.0")) {
-    if (
-      await fileOrDirExists(
-        join(
-          gameDir,
-          server.dataDir,
-          "StreamingAssets",
-          "Audio",
-          "GeneratedSoundBanks",
-          "Windows"
-        )
-      )
-    ) {
-      await mkdirp(
-        join(gameDir, server.dataDir, "StreamingAssets", "AudioAssets")
-      );
-      await exec([
-        "/bin/cp",
-        "-R",
-        "-f",
-        join(
-          gameDir,
-          server.dataDir,
-          "StreamingAssets",
-          "Audio",
-          "GeneratedSoundBanks",
-          "Windows"
-        ) + "/.",
-        join(gameDir, server.dataDir, "StreamingAssets", "AudioAssets"),
-      ]);
-      await exec([
-        "rm",
-        "-rf",
-        join(
-          gameDir,
-          server.dataDir,
-          "StreamingAssets",
-          "Audio",
-          "GeneratedSoundBanks",
-          "Windows"
-        ),
-      ]);
-    }
-  }
 
   yield* downloadAndPatch(updateFileZip, gameDir, aria2);
 
@@ -200,14 +155,14 @@ export async function* updateGameProgram({
 game_version=${updatedGameVersion}
 channel=${server.channel_id}
 sub_channel=${server.subchannel_id}
-cps=${server.cps}`
+cps=${server.cps}`,
   );
 }
 
 async function* predownload(
   updateFileZip: string,
   gameDir: string,
-  aria2: Aria2
+  aria2: Aria2,
 ): CommonUpdateProgram {
   const downloadTmp = join(gameDir, ".ariatmp");
   await mkdirp(downloadTmp);
@@ -216,7 +171,7 @@ async function* predownload(
   if (
     (await getKeyOrDefault(
       `predownloaded_${(await sha1sum(basename(updateFileZip))).slice(0, 32)}`,
-      `NOTFOUND`
+      `NOTFOUND`,
     )) !== "NOTFOUND"
   ) {
     return;
@@ -244,13 +199,13 @@ async function* predownload(
     yield [
       "setProgress",
       Number(
-        (progress.completedLength * BigInt(10000)) / progress.totalLength
+        (progress.completedLength * BigInt(10000)) / progress.totalLength,
       ) / 100,
     ];
   }
   await setKey(
     `predownloaded_${(await sha1sum(basename(updateFileZip))).slice(0, 32)}`,
-    "true"
+    "true",
   );
 }
 

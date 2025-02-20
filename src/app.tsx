@@ -51,47 +51,52 @@ export async function createApp() {
     "--no-conf",
     "--enable-rpc",
     `--rpc-listen-port=${aria2_port}`,
-    `--rpc-listen-all=true`,
-    `--rpc-allow-origin-all`,
-    `--input-file`,
+    "--rpc-listen-all=true",
+    "--rpc-allow-origin-all",
+    "--input-file",
     `${aria2_session}`,
-    `--save-session`,
+    "--save-session",
     `${aria2_session}`,
-    `--pause`,
-    `true`,
+    "--pause",
+    "true",
     "--stop-with-process",
     pid,
   ]);
   addTerminationHook(async () => {
     // double insurance (esp. for self restart)
-    await log("killing process " + apid);
+    await log(`killing process ${apid}`);
     try {
-      await exec(["kill", apid + ""]);
+      await exec(["kill", `${apid}`]);
     } catch {
       await log("killing process failed?");
     }
     return true;
   });
+  console.log("Aria2 passed");
   const aria2 = await Promise.race([
     createAria2({ host: "127.0.0.1", port: aria2_port }),
     timeout(10000),
-  ]).catch(() => Promise.reject(new Error("Fail to launch aria2.")));
+  ]).catch(() =>
+    Promise.reject(
+      new Error("Fail to launch aria2. Why does aria2 always fail"),
+    ),
+  );
   await log(`Launched aria2 version ${aria2.version.version}`);
 
   const { latest, downloadUrl, description, version } = await createUpdater({
     github,
     aria2,
   });
-  if (latest == false) {
+  if (latest === false) {
     if (
       await locale.prompt(
         "NEW_VERSION_AVALIABLE",
         "NEW_VERSION_AVALIABLE_DESC",
-        [version, description]
+        [version, description],
       )
     ) {
       return createCommonUpdateUI(locale, () =>
-        downloadProgram(aria2, downloadUrl)
+        downloadProgram(aria2, downloadUrl),
       );
     }
   }
@@ -114,12 +119,11 @@ export async function createApp() {
         locale,
       }),
     });
-  } else {
-    return await createWineInstallProgram({
-      aria2,
-      wineAbsPrefix: prefixPath,
-      wineDistro: wineStatus.wineDistribution,
-      locale,
-    });
   }
+  return await createWineInstallProgram({
+    aria2,
+    wineAbsPrefix: prefixPath,
+    wineDistro: wineStatus.wineDistribution,
+    locale,
+  });
 }

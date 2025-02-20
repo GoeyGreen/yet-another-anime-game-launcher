@@ -1,6 +1,6 @@
 const execa = require("execa");
 const fs = require("fs-extra");
-const path = require("path");
+const path = require("node:path");
 const { rimraf } = require("rimraf");
 const { IconIcns } = require("@shockpkg/icon-encoder");
 
@@ -11,74 +11,74 @@ const { IconIcns } = require("@shockpkg/icon-encoder");
   await execa("cp", ["neutralino.config.json", "neutralino.config.json.bak"]);
   // build done read neutralino.config.js file
   const config = await fs.readJSON(
-    path.resolve(process.cwd(), "neutralino.config.json")
+    path.resolve(process.cwd(), "neutralino.config.json"),
   );
   let bundleId;
   let appDistributionName;
-  switch (process.env["YAAGL_CHANNEL_CLIENT"]) {
+  switch (process.env.YAAGL_CHANNEL_CLIENT) {
     case "hk4ecn":
       bundleId = config.applicationId;
       appDistributionName = config.cli.binaryName;
       break;
     case "hk4eos":
-      bundleId = config.applicationId + ".os";
-      appDistributionName = config.cli.binaryName + " OS";
+      bundleId = `${config.applicationId}.os`;
+      appDistributionName = `${config.cli.binaryName} OS`;
       break;
     case "hk4euniversal":
-      bundleId = config.applicationId + ".uni";
-      appDistributionName = config.cli.binaryName + " Uni";
+      bundleId = `${config.applicationId}.uni`;
+      appDistributionName = `${config.cli.binaryName} Uni`;
       break;
     case "hkrpgcn":
-      bundleId = config.applicationId + ".hkrpg.cn";
-      appDistributionName = config.cli.binaryName + " HSR";
+      bundleId = `${config.applicationId}.hkrpg.cn`;
+      appDistributionName = `${config.cli.binaryName} HSR`;
       config.modes.window.icon = "/src/icons/March7th.cr.png";
       break;
     case "hkrpgos":
-      bundleId = config.applicationId + ".hkrpg.os";
-      appDistributionName = config.cli.binaryName + " HSR OS";
+      bundleId = `${config.applicationId}.hkrpg.os`;
+      appDistributionName = `${config.cli.binaryName} HSR OS`;
       config.modes.window.icon = "/src/icons/March7th.cr.png";
       break;
     case "bh3glb":
-      bundleId = config.applicationId + ".bh3.glb";
-      appDistributionName = config.cli.binaryName + " Honkai Global";
+      bundleId = `${config.applicationId}.bh3.glb`;
+      appDistributionName = `${config.cli.binaryName} Honkai Global`;
       config.modes.window.icon = "/src/icons/Elysia.cr.png";
       break;
     case "cbjq":
-      bundleId = config.applicationId + ".scz.os";
-      appDistributionName = config.cli.binaryName + " SCZ OS";
+      bundleId = `${config.applicationId}.scz.os`;
+      appDistributionName = `${config.cli.binaryName} SCZ OS`;
       break;
     case "cbjqcn":
-      bundleId = config.applicationId + ".scz.cn";
-      appDistributionName = config.cli.binaryName + " SCZ";
+      bundleId = `${config.applicationId}.scz.cn`;
+      appDistributionName = `${config.cli.binaryName} SCZ`;
       break;
     case "napos":
-      bundleId = config.applicationId + ".nap.os";
-      appDistributionName = config.cli.binaryName + " ZZZ OS";
+      bundleId = `${config.applicationId}.nap.os`;
+      appDistributionName = `${config.cli.binaryName} ZZZ OS`;
       config.modes.window.icon = "/src/icons/ZZZ_Bang.cr.png";
       break;
     case "napcn":
-      bundleId = config.applicationId + ".nap.cn";
-      appDistributionName = config.cli.binaryName + " ZZZ";
+      bundleId = `${config.applicationId}.nap.cn`;
+      appDistributionName = `${config.cli.binaryName} ZZZ`;
       config.modes.window.icon = "/src/icons/ZZZ_Bang.cr.png";
       break;
     default:
       throw new Error("YAAGL_CHANNEL_CLIENT env required");
   }
-  if (process.env["YAAGL_TEST"]) {
+  if (process.env.YAAGL_TEST) {
     bundleId += ".test";
     appDistributionName += " Test";
   }
   await fs.writeJSON(
     path.resolve(process.cwd(), "neutralino.config.json"),
-    config
+    config,
   );
   try {
-    await execa("pnpm", ["exec", "tsc"]); // do typecheck first
+    await execa("bun", ["tsc"]); // do typecheck first
     await execa("rm", ["-rf", "./.tmp"]);
-    await execa("pnpm", ["exec", "vite", "build"]);
+    await execa("bun", ["vite", "build"]);
     await execa("cp", ["./neutralino.js", "./dist/neutralino.js"]);
     // run neu build command
-    await execa("pnpm", ["exec", "neu", "build"]);
+    await execa("bun", ["neu", "build"]);
   } finally {
     await execa("mv", [
       "-f",
@@ -88,7 +88,7 @@ const { IconIcns } = require("@shockpkg/icon-encoder");
   }
 
   const appname = config.cli.binaryName;
-  const binaryName = `${config.cli.binaryName}-mac_x64`;
+  const binaryName = `${config.cli.binaryName}-mac_arm64`;
 
   // read package.json
   const pkg = await fs.readJSON(path.resolve(process.cwd(), "package.json"));
@@ -97,23 +97,15 @@ const { IconIcns } = require("@shockpkg/icon-encoder");
   // create app folder
   await fs.mkdir(path.resolve(process.cwd(), `${appDistributionName}.app`));
   await fs.mkdir(
-    path.resolve(process.cwd(), `${appDistributionName}.app`, "Contents")
+    path.resolve(process.cwd(), `${appDistributionName}.app`, "Contents"),
   );
   await fs.mkdir(
     path.resolve(
       process.cwd(),
       `${appDistributionName}.app`,
       "Contents",
-      "MacOS"
-    )
-  );
-  await fs.mkdir(
-    path.resolve(
-      process.cwd(),
-      `${appDistributionName}.app`,
-      "Contents",
-      "Resources"
-    )
+      "MacOS",
+    ),
   );
   await fs.mkdir(
     path.resolve(
@@ -121,8 +113,16 @@ const { IconIcns } = require("@shockpkg/icon-encoder");
       `${appDistributionName}.app`,
       "Contents",
       "Resources",
-      ".storage"
-    )
+    ),
+  );
+  await fs.mkdir(
+    path.resolve(
+      process.cwd(),
+      `${appDistributionName}.app`,
+      "Contents",
+      "Resources",
+      ".storage",
+    ),
   );
   // move binary to app folder
   await fs.move(
@@ -132,8 +132,8 @@ const { IconIcns } = require("@shockpkg/icon-encoder");
       `${appDistributionName}.app`,
       "Contents",
       "MacOS",
-      binaryName
-    )
+      binaryName,
+    ),
   );
   await fs.rename(
     path.resolve(
@@ -141,20 +141,20 @@ const { IconIcns } = require("@shockpkg/icon-encoder");
       `${appDistributionName}.app`,
       "Contents",
       "MacOS",
-      binaryName
+      binaryName,
     ),
     path.resolve(
       process.cwd(),
       `${appDistributionName}.app`,
       "Contents",
       "MacOS",
-      appname
-    )
+      appname,
+    ),
   );
 
   // move res.neu or resources.neu to app folder
   const resources = fs.readdirSync(
-    path.resolve(process.cwd(), "dist", appname)
+    path.resolve(process.cwd(), "dist", appname),
   );
   const resourcesFile = resources.find(file => /res(ources)?/.test(file));
   await fs.copy(
@@ -164,14 +164,14 @@ const { IconIcns } = require("@shockpkg/icon-encoder");
       `${appDistributionName}.app`,
       "Contents",
       "Resources",
-      resourcesFile
-    )
+      resourcesFile,
+    ),
   );
 
   // check if file exists
   if (fs.existsSync(path.join(process.cwd(), config.modes.window.icon))) {
     const iconFile = await fs.readFile(
-      path.join(process.cwd(), config.modes.window.icon)
+      path.join(process.cwd(), config.modes.window.icon),
     );
     icns.addFromPng(iconFile, ["ic09"], raw);
     // icns.addFromPng(iconFile, ['ic07'], raw);
@@ -192,9 +192,9 @@ const { IconIcns } = require("@shockpkg/icon-encoder");
       `${appDistributionName}.app`,
       "Contents",
       "Resources",
-      "icon.icns"
+      "icon.icns",
     ),
-    icns.encode()
+    icns.encode(),
   );
 
   // create an empty icon file in the app folder
@@ -209,7 +209,7 @@ const { IconIcns } = require("@shockpkg/icon-encoder");
       `${appDistributionName}.app`,
       "Contents",
       "MacOS",
-      "parameterized"
+      "parameterized",
     ),
     `#!/usr/bin/env bash
 SCRIPT_DIR="$( cd -- "$( dirname -- "\${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
@@ -219,7 +219,7 @@ mkdir -p "$APST_DIR"
 CONTENTS_DIR="$(dirname "$SCRIPT_DIR")"
 rsync -rlptu "$CONTENTS_DIR/Resources/." "$APST_DIR"
 cd "$APST_DIR"
-PATH_LAUNCH="$(dirname "$CONTENTS_DIR")" exec "$SCRIPT_DIR/${appname}" --path="$APST_DIR"`
+PATH_LAUNCH="$(dirname "$CONTENTS_DIR")" exec "$SCRIPT_DIR/${appname}" --path="$APST_DIR"`,
   );
 
   await fs.chmod(
@@ -228,9 +228,9 @@ PATH_LAUNCH="$(dirname "$CONTENTS_DIR")" exec "$SCRIPT_DIR/${appname}" --path="$
       `${appDistributionName}.app`,
       "Contents",
       "MacOS",
-      "parameterized"
+      "parameterized",
     ),
-    0o755
+    0o755,
   );
   await fs.chmod(
     path.resolve(
@@ -238,19 +238,19 @@ PATH_LAUNCH="$(dirname "$CONTENTS_DIR")" exec "$SCRIPT_DIR/${appname}" --path="$
       `${appDistributionName}.app`,
       "Contents",
       "MacOS",
-      appname
+      appname,
     ),
-    0o755
+    0o755,
   );
   // copy sidecar
   const sidecarDst = path.resolve(
     process.cwd(),
     `${appDistributionName}.app`,
-    `Contents`,
-    `Resources`,
-    `sidecar`
+    "Contents",
+    "Resources",
+    "sidecar",
   );
-  await fs.copy(path.resolve(process.cwd(), `sidecar`), sidecarDst, {
+  await fs.copy(path.resolve(process.cwd(), "sidecar"), sidecarDst, {
     preserveTimestamps: true,
   });
 
@@ -262,13 +262,13 @@ PATH_LAUNCH="$(dirname "$CONTENTS_DIR")" exec "$SCRIPT_DIR/${appname}" --path="$
         return dirent.isDirectory()
           ? getFiles(res)
           : dirent.isFile()
-          ? dirent.name.split(".").length == 1
-            ? fs.chmod(res, 0o755).then(() => {
-                console.log("chmod +x " + res);
-              })
-            : Promise.resolve()
-          : Promise.resolve();
-      })
+            ? dirent.name.split(".").length === 1
+              ? fs.chmod(res, 0o755).then(() => {
+                  console.log(`chmod +x ${res}`);
+                })
+              : Promise.resolve()
+            : Promise.resolve();
+      }),
     );
   })(sidecarDst);
 
@@ -279,7 +279,7 @@ PATH_LAUNCH="$(dirname "$CONTENTS_DIR")" exec "$SCRIPT_DIR/${appname}" --path="$
       process.cwd(),
       `${appDistributionName}.app`,
       "Contents",
-      "Info.plist"
+      "Info.plist",
     ),
     `<?xml version="1.0" encoding="UTF-8"?>
     <!DOCTYPE plist PUBLIC "-//Apple Computer//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
@@ -313,6 +313,6 @@ PATH_LAUNCH="$(dirname "$CONTENTS_DIR")" exec "$SCRIPT_DIR/${appname}" --path="$
             <true/>
         </dict>
     </dict>
-    </plist>`
+    </plist>`,
   );
 })();

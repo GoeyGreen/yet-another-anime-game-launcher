@@ -8,6 +8,8 @@ export async function createAria2({
   host: string;
   port: number;
 }) {
+  //Passing in the host broke this for some reason
+  // const host = "127.0.0.1";
   await wait(500); // FIXME:
   const rpc = new RPC.Client({
     host,
@@ -22,10 +24,10 @@ export async function createAria2({
   async function* doStreaming(gid: string) {
     while (true) {
       const status = await rpc.tellStatus(gid);
-      if (status.status == "complete") {
+      if (status.status === "complete") {
         break;
       }
-      if (status.totalLength == BigInt(0)) {
+      if (status.totalLength === BigInt(0)) {
         continue;
       }
       yield status;
@@ -40,15 +42,15 @@ export async function createAria2({
     const gid = await sha256_16(`${options.uri}:${options.absDst}`);
     try {
       const status = await rpc.tellStatus(gid);
-      if (status.status == "paused") {
+      if (status.status === "paused") {
         await rpc.unpause(gid);
-      } else if (status.status == "complete") {
+      } else if (status.status === "complete") {
         return;
       } else {
-        throw new Error("FIXME: implmenet me (aria2.ts) " + status.status);
+        throw new Error(`FIXME: implmenet me (aria2.ts) ${status.status}`);
       }
     } catch (e: unknown) {
-      if (typeof e == "object" && e != null && "code" in e && e["code"] == 1) {
+      if (typeof e === "object" && e != null && "code" in e && e.code === 1) {
         await rpc.addUri(options.uri, {
           gid,
           "max-connection-per-server": 16,
@@ -70,6 +72,5 @@ export async function createAria2({
   };
 }
 
-export type Aria2 = ReturnType<typeof createAria2> extends Promise<infer T>
-  ? T
-  : never;
+export type Aria2 =
+  ReturnType<typeof createAria2> extends Promise<infer T> ? T : never;
