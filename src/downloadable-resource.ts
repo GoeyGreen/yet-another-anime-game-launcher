@@ -1,6 +1,6 @@
 import { eq } from "semver";
-import { Aria2 } from "@aria2";
-import { CommonUpdateProgram } from "@common-update-ui";
+import type { Aria2 } from "@aria2";
+import type { CommonUpdateProgram } from "@common-update-ui";
 import {
   mkdirp,
   resolve,
@@ -15,7 +15,7 @@ import {
   writeFile,
   rmrf_dangerously,
 } from "@utils";
-import { Wine } from "@wine";
+import type { Wine } from "@wine";
 import { join } from "path-browserify";
 
 const CURRENT_MVK_VERSION = "1.2.2";
@@ -105,13 +105,13 @@ export async function* checkAndDownloadJadeite(
     return;
   }
 
-  await rmrf_dangerously(resolve(`./jadeite`));
+  await rmrf_dangerously(resolve("./jadeite"));
 
   await mkdirp("./jadeite");
   yield ["setStateText", "DOWNLOADING_ENVIRONMENT"];
   for await (const progress of aria2.doStreamingDownload({
-    uri: `https://codeberg.org/mkrsym1/jadeite/releases/download/v4.1.0/v4.1.0.zip`,
-    absDst: resolve(`./jadeite/archive.zip`),
+    uri: "https://codeberg.org/mkrsym1/jadeite/releases/download/v4.1.0/v4.1.0.zip",
+    absDst: resolve("./jadeite/archive.zip"),
   })) {
     yield [
       "setProgress",
@@ -125,8 +125,8 @@ export async function* checkAndDownloadJadeite(
   }
 
   for await (const [dec, total] of doStreamUnzip(
-    resolve(`./jadeite/archive.zip`),
-    resolve(`./jadeite`),
+    resolve("./jadeite/archive.zip"),
+    resolve("./jadeite"),
   )) {
     yield ["setProgress", (dec / total) * 100];
   }
@@ -142,7 +142,7 @@ const DXMT_FILES_WITH_UNIXLIB = [
   "winemetal.so",
 ];
 
-const CURRENT_DXMT_VERSION = "0.0.3";
+const CURRENT_DXMT_VERSION = "0.21.0";
 
 export async function* checkAndDownloadDXMT(aria2: Aria2): CommonUpdateProgram {
   if (
@@ -158,7 +158,7 @@ export async function* checkAndDownloadDXMT(aria2: Aria2): CommonUpdateProgram {
   yield ["setStateText", "DOWNLOADING_ENVIRONMENT"];
   for (const file of DXMT_FILES_WITH_UNIXLIB) {
     for await (const progress of aria2.doStreamingDownload({
-      uri: `https://github.com/3Shain/wine/releases/download/dxmt-1/${file}`,
+      uri: `https://github.com/3Shain/wine/releases/download/dxmt-21/${file}`,
       absDst: resolve(`./dxmt/${file}`),
     })) {
       yield [
@@ -213,7 +213,7 @@ export async function* checkAndDownloadReshade(
     ];
   }
   for await (const progress of aria2.doStreamingDownload({
-    uri: `https://lutris.net/files/tools/dll/d3dcompiler_47.dll`,
+    uri: "https://lutris.net/files/tools/dll/d3dcompiler_47.dll",
     absDst: join(reshaderDir, "d3dcompiler_47.dll"),
   })) {
     yield [
@@ -232,10 +232,10 @@ export async function* checkAndDownloadReshade(
   const s = new Uint8Array(b);
   const offset = s.findIndex((v, idx, arr) => {
     return (
-      v == 0x50 &&
-      arr[idx + 1] == 0x4b &&
-      arr[idx + 2] == 0x03 &&
-      arr[idx + 3] == 0x04
+      v === 0x50 &&
+      arr[idx + 1] === 0x4b &&
+      arr[idx + 2] === 0x03 &&
+      arr[idx + 3] === 0x04
     );
   });
   await writeBinary(join(reshaderDir, "install.zip"), b.slice(offset));
